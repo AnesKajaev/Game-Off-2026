@@ -18,6 +18,7 @@ public class CharacterSwitcher : MonoBehaviour
 
     void Update()
     {
+        if (PlayerMovement.inputLocked) return;
         if (characters.Length == 0 || Keyboard.current == null) return;
 
         if (Keyboard.current[switchKey].wasPressedThisFrame)

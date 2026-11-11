@@ -6,7 +6,8 @@ public class PlayerMovement : MonoBehaviour
 {
     public float speed = 5f;
     public SpriteRenderer sprite;
-    public bool isControlled = false; 
+    public bool isControlled = false;      // set by CharacterSwitcher
+    public static bool inputLocked;        // true while a minigame is open
 
     CharacterController controller;
     float verticalVelocity;
@@ -18,7 +19,7 @@ public class PlayerMovement : MonoBehaviour
         float x = 0f, z = 0f;
 
         var kb = Keyboard.current;
-        if (isControlled && kb != null)
+        if (isControlled && !inputLocked && kb != null)
         {
             x = (kb.dKey.isPressed ? 1 : 0) - (kb.aKey.isPressed ? 1 : 0);
             z = (kb.wKey.isPressed ? 1 : 0) - (kb.sKey.isPressed ? 1 : 0);
