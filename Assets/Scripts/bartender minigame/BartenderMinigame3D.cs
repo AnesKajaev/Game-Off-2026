@@ -4,15 +4,15 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
-public class BartenderMinigame3D : MonoBehaviour
+public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 {
     [Header("Stage")]
     public GameObject root;
     public Camera stageCamera;
-    public Transform servePoint;      // where the active glass sits (base center)
-    public Transform queuePoint;      // next glass waits here (to the right)
-    public Transform exitPoint;       // finished glasses slide here (to the left)
-    public Transform bottle;          // bottle object, sprite pivot at its center
+    public Transform servePoint;
+    public Transform queuePoint;
+    public Transform exitPoint;
+    public Transform bottle;
     public SpriteRenderer bottleRenderer;
 
     [Header("Drinks")]
@@ -20,19 +20,19 @@ public class BartenderMinigame3D : MonoBehaviour
     public Key switchKey = Key.Q;
 
     [Header("Liquid")]
-    public LiquidMetaball liquid;     // on the stage camera: draws the drops as one smooth liquid
-    public float dropSize = 0.08f;    // physics size of one drop
+    public LiquidMetaball liquid;
+    public float dropSize = 0.08f;
     public PhysicsMaterial2D liquidPhysics;
-    public int maxDrops = 350;             // fewer drops = faster. Raise dropSize instead of adding more
-    public bool continuousCollision = false;   // turn on only if drops tunnel through the glass
-    public float sleepSpeed = 0.1f;        // drops slower than this fall asleep (big saving for piles)
+    public int maxDrops = 350;
+    public bool continuousCollision = false;
+    public float sleepSpeed = 0.1f;
 
     [Header("Bottle control")]
-    public Vector2 moveMin = new Vector2(-0.5f, 0.8f);   // limits, relative to servePoint
+    public Vector2 moveMin = new Vector2(-0.5f, 0.8f);
     public Vector2 moveMax = new Vector2(2.5f, 3f);
     public float followSmooth = 12f;
-    public float tugAngle = 8f;        // degrees per wheel tick
-    public float returnSpeed = 30f;    // degrees/sec it falls back on its own
+    public float tugAngle = 8f;
+    public float returnSpeed = 30f;
 
     [Header("Shake / spill")]
     public float tugShake = 0.35f;
@@ -42,17 +42,19 @@ public class BartenderMinigame3D : MonoBehaviour
     public float spillJitter = 1.2f;
 
     [Header("Orders & scoring")]
-    public int ordersPerShift = 5;
+    public int minDrinks = 2;
+    public int maxDrinks = 3;
     public float settleSpeed = 0.08f;
     public float settleHold = 0.6f;
     public float slideTime = 0.8f;
-    public float maxTiltBonus = 2f;    // score multiplier at full tilt
-    public int spillPenalty = 2;       // points lost per spilled drop
+    public float maxTiltBonus = 2f;
+    public int spillPenalty = 2;
 
-    public UnityEvent<int> onShiftFinished;   // passes the total score
+    public UnityEvent<int> onCustomerServed;
+    public UnityEvent<int> onShiftFinished;
 
     class DropInfo { public Rigidbody2D rb; public DrinkData drink; }
-    enum State { Pouring, Serving, Done }
+    enum State { Idle, Pouring, Serving, Waiting }
 
     readonly List<DropInfo> drops = new List<DropInfo>();
     Glass current, next;
@@ -62,8 +64,11 @@ public class BartenderMinigame3D : MonoBehaviour
     bool isPouring;
     Vector3 bottleBase;
     string message = "";
+    Guest customer;
+    int orders;
+    int customersServed;
+    float waitCheck;
 
-    // ---------- layers ----------
     void SetLayer(GameObject go)
     {
         int layer = LayerMask.NameToLayer("Bartender");
@@ -71,9 +76,35 @@ public class BartenderMinigame3D : MonoBehaviour
             t.gameObject.layer = layer;
     }
 
-    // ---------- open / close ----------
+    public bool CanStart => BarCounter.Instance != null && BarCounter.Instance.NextCustomer() != null;
+
+    List<DrinkData> PickRequest()
+    {
+        var pool = new List<DrinkData>();
+        for (int i = 0; drinks != null && i < drinks.Length; i++)
+        {
+            var d = drinks[i];
+            if (d == null)
+                Debug.LogWarning("BartenderMinigame3D: Drinks[" + i + "] is empty (no DrinkData assigned).", this);
+            else if (d.glassPrefab == null)
+                Debug.LogWarning("BartenderMinigame3D: Drinks[" + i + "] '" + d.name + "' has no usable Glass Prefab (empty, or the prefab lost its Glass script). Click to select the asset.", d);
+            else
+                pool.Add(d);
+        }
+        int count = Mathf.Min(Random.Range(minDrinks, maxDrinks + 1), pool.Count);
+        var result = new List<DrinkData>();
+        for (int n = 0; n < count; n++)
+        {
+            int i = Random.Range(0, pool.Count);
+            result.Add(pool[i]);
+            pool.RemoveAt(i);
+        }
+        return result;
+    }
+
     public void Open()
     {
+        if (!CanStart) return;
         Physics2D.linearSleepTolerance = sleepSpeed;
         root.SetActive(true);
         PlayerMovement.inputLocked = true;
@@ -82,8 +113,11 @@ public class BartenderMinigame3D : MonoBehaviour
 
     public void Close()
     {
+        if (state != State.Idle) onShiftFinished.Invoke(totalScore);
         StopAllCoroutines();
         ClearAll();
+        customer = null;
+        state = State.Idle;
         PlayerPrefs.Save();
         root.SetActive(false);
         PlayerMovement.inputLocked = false;
@@ -93,14 +127,61 @@ public class BartenderMinigame3D : MonoBehaviour
     {
         StopAllCoroutines();
         ClearAll();
-        served = spawnedGlasses = totalScore = 0;
+        state = State.Idle;
+        totalScore = 0;
+        customersServed = 0;
         SelectDrink(0);
         bottleBase = servePoint.position + new Vector3(1.2f, 1.8f, 0f);
+        StartCustomer();
+    }
 
+    void StartCustomer()
+    {
+        ClearDrops();
+        customer = BarCounter.Instance != null ? BarCounter.Instance.NextCustomer() : null;
+        if (customer == null)
+        {
+            EnterWaiting();
+            return;
+        }
+
+        if (customer.drinkRequest == null || customer.drinkRequest.Count == 0) customer.drinkRequest = PickRequest();
+        if (customer.drinkRequest.Count == 0)
+        {
+            Debug.LogError("BartenderMinigame3D on '" + name + "': no usable drinks (" + (drinks == null ? 0 : drinks.Length) + " entries in Drinks). Every entry needs a DrinkData with a Glass Prefab.", this);
+            customer.drinkRequest = null;
+            Close();
+            return;
+        }
+
+        orders = customer.drinkRequest.Count;
+        served = spawnedGlasses = 0;
         current = SpawnGlass(servePoint.position);
-        next = ordersPerShift > 1 ? SpawnGlass(queuePoint.position) : null;
+        next = orders > 1 ? SpawnGlass(queuePoint.position) : null;
         ResetGlassStats();
         state = State.Pouring;
+    }
+
+    void EnterWaiting()
+    {
+        customer = null;
+        state = State.Waiting;
+        waitCheck = 0f;
+        message = "No guests at the bar. Esc to leave";
+    }
+
+    void WatchForGuests(float dt)
+    {
+        waitCheck += dt;
+        if (waitCheck < 0.25f) return;
+        waitCheck = 0f;
+        if (BarCounter.Instance != null && BarCounter.Instance.NextCustomer() != null) StartCustomer();
+    }
+
+    void ClearDrops()
+    {
+        foreach (var di in drops) if (di.rb) Destroy(di.rb.gameObject);
+        drops.Clear();
     }
 
     void ClearAll()
@@ -122,7 +203,7 @@ public class BartenderMinigame3D : MonoBehaviour
 
     Glass SpawnGlass(Vector3 pos)
     {
-        var d = drinks[Random.Range(0, drinks.Length)];
+        var d = customer.drinkRequest[spawnedGlasses];
         var g = Instantiate(d.glassPrefab, pos, Quaternion.identity, root.transform);
         SetLayer(g.gameObject);
         g.drink = d;
@@ -138,7 +219,6 @@ public class BartenderMinigame3D : MonoBehaviour
         bottleRenderer.sprite = drinks[i].bottleSprite;
     }
 
-    // ---------- update ----------
     void Update()
     {
         if (!root.activeSelf) return;
@@ -147,13 +227,24 @@ public class BartenderMinigame3D : MonoBehaviour
         if (kb == null || mouse == null) return;
 
         if (kb[Key.Escape].wasPressedThisFrame) { Close(); return; }
+        if (state == State.Idle) return;
 
         float dt = Time.deltaTime;
         CleanupDrops();
 
-        if (state != State.Done) UpdateBottle(kb, mouse, dt);
-        if (state == State.Pouring)
+        UpdateBottle(kb, mouse, dt);
+        if (state == State.Waiting)
         {
+            WatchForGuests(dt);
+        }
+        else if (state == State.Pouring)
+        {
+            if (customer == null)
+            {
+                ClearAll();
+                EnterWaiting();
+                return;
+            }
             Pour(dt);
             CheckSettled(dt);
         }
@@ -165,15 +256,13 @@ public class BartenderMinigame3D : MonoBehaviour
             SelectDrink((drinkIndex + 1) % drinks.Length);
         var d = drinks[drinkIndex];
 
-        // Wheel: up = tug the tilt up (and shake it), down = tilt back
         float scroll = mouse.scroll.ReadValue().y;
         if (scroll > 0.01f) { tilt += tugAngle; shake = Mathf.Min(1f, shake + tugShake); }
         else if (scroll < -0.01f) tilt -= tugAngle;
 
-        tilt = Mathf.Clamp(tilt - returnSpeed * dt, 0f, d.maxTilt);   // falls back on its own
+        tilt = Mathf.Clamp(tilt - returnSpeed * dt, 0f, d.maxTilt);
         shake = Mathf.Max(0f, shake - shakeDecay * dt);
 
-        // Mouse position on the stage plane, clamped to the limits
         Ray ray = stageCamera.ScreenPointToRay(mouse.position.ReadValue());
         var plane = new Plane(Vector3.forward, servePoint.position);
         Vector3 c = servePoint.position;
@@ -232,10 +321,8 @@ public class BartenderMinigame3D : MonoBehaviour
         rb.linearDamping = 0.2f;
         rb.collisionDetectionMode = continuousCollision ? CollisionDetectionMode2D.Continuous : CollisionDetectionMode2D.Discrete;
 
-        // The visible part is a soft blob that the LiquidMetaball shader merges with its neighbours
         liquid.CreateBlob(go.transform, d.liquidColor, dropSize);
 
-        // Stream leaves along the bottle's neck; shake and high flow add splash
         Vector2 dir = bottle.up;
         Vector2 noise = Random.insideUnitCircle * (0.05f + shake * spillJitter) * Mathf.Lerp(0.5f, 1.5f, t);
         rb.linearVelocity = dir.normalized * Mathf.Lerp(0.4f, 1.6f, t) + noise;
@@ -256,16 +343,15 @@ public class BartenderMinigame3D : MonoBehaviour
                 Destroy(di.rb.gameObject);
                 drops.RemoveAt(i);
                 spilledThisGlass++;
-                SpillLog.Add(di.drink.drinkName, 1);   // shows up on the night shift
+                SpillLog.Add(di.drink.drinkName, 1);
             }
         }
     }
 
     readonly List<float> levelBuf = new List<float>();
     float checkAcc;
-    const float checkInterval = 0.1f;   // the calm/level check runs this often, not every frame
+    const float checkInterval = 0.1f;
 
-    // Level of the liquid in a glass = average height of its top 10% of drops
     float GlassLevel(Glass g)
     {
         levelBuf.Clear();
@@ -284,9 +370,9 @@ public class BartenderMinigame3D : MonoBehaviour
         return sum / take;
     }
 
-    // Serve only when: not pouring, liquid above the minimum line, and the liquid is calm
     void CheckSettled(float dt)
     {
+        if (current == null) return;
         if (isPouring)
         {
             settleTimer = 0f;
@@ -342,7 +428,6 @@ public class BartenderMinigame3D : MonoBehaviour
             ys.Add(g.transform.InverseTransformPoint(di.rb.position).y + dropSize / 2f);
         }
 
-        // Level = average of the top 10% of drops
         ys.Sort(); ys.Reverse();
         float level = 0f;
         if (ys.Count > 0)
@@ -366,11 +451,10 @@ public class BartenderMinigame3D : MonoBehaviour
         else if (err <= g.tolerance) message = "Perfect! +" + gained;
         else message = (level < g.TargetY ? "Underfilled" : "Overfilled") + "  +" + gained;
 
-        // Freeze the liquid into the glass so it slides away with it
         foreach (var di in inside)
         {
             di.rb.linearVelocity = Vector2.zero;
-            di.rb.simulated = false;   // out of the physics world, still rides along with the glass
+            di.rb.simulated = false;
             di.rb.transform.SetParent(g.transform, true);
             drops.Remove(di);
         }
@@ -381,22 +465,23 @@ public class BartenderMinigame3D : MonoBehaviour
         var old = current;
         Coroutine slideOld = StartCoroutine(Slide(old.transform, exitPoint.position));
 
-        if (served >= ordersPerShift)
+        if (served >= orders)
         {
             yield return slideOld;
             Destroy(old.gameObject);
             current = null;
-            state = State.Done;
-            message = "Shift over! Score: " + totalScore + "   (Esc to close)";
             PlayerPrefs.Save();
-            onShiftFinished.Invoke(totalScore);
+            if (customer != null) { customer.ReceiveDrinks(); customer = null; }
+            customersServed++;
+            onCustomerServed.Invoke(totalScore);
+            StartCustomer();
             yield break;
         }
 
         current = next;
         yield return StartCoroutine(Slide(current.transform, servePoint.position));
 
-        if (spawnedGlasses < ordersPerShift)
+        if (spawnedGlasses < orders)
         {
             next = SpawnGlass(queuePoint.position + Vector3.right * 1.5f);
             StartCoroutine(Slide(next.transform, queuePoint.position));
@@ -421,7 +506,6 @@ public class BartenderMinigame3D : MonoBehaviour
         t.position = to;
     }
 
-    // ---------- UI ----------
     void OnGUI()
     {
         if (!root.activeSelf) return;
@@ -435,7 +519,7 @@ public class BartenderMinigame3D : MonoBehaviour
         string bottleName = drinks.Length > 0 ? drinks[drinkIndex].drinkName : "-";
         GUI.Label(new Rect(20, 20, 420, 100),
             "Bottle: " + bottleName + "  (" + switchKey + " to switch)\n" +
-            "Score: " + totalScore + "   Glass " + Mathf.Min(served + 1, ordersPerShift) + "/" + ordersPerShift,
+            "Score: " + totalScore + "   Guests served: " + customersServed + (customer != null ? "   Glass " + Mathf.Min(served + 1, orders) + "/" + orders : ""),
             small);
     }
 

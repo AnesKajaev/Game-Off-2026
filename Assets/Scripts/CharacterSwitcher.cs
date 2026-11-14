@@ -3,10 +3,10 @@ using UnityEngine.InputSystem;
 
 public class CharacterSwitcher : MonoBehaviour
 {
-    public PlayerMovement[] characters;   // set in the Inspector
+    public PlayerMovement[] characters;
     public CameraFollow cameraFollow;
     public int startIndex = 0;
-    public Key switchKey = Key.Q;         // change in the Inspector
+    public Key switchKey = Key.Q;
 
     int current;
 

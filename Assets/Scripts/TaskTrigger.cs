@@ -5,11 +5,13 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(BoxCollider))]
 public class TaskTrigger : MonoBehaviour
 {
-    public PlayerMovement requiredCharacter;   // the only one who can use this box
-    public bool autoStart = false;             // true = starts on walk-in, no key needed
+    public PlayerMovement requiredCharacter;
+    public bool autoStart = false;
     public Key interactKey = Key.E;
     public bool oneTimeOnly = true;
-    public UnityEvent onInteract;              // hook up the task in the Inspector
+    [Tooltip("Optional: the task only starts while this script says CanStart (the bartender minigame uses this)")]
+    public MonoBehaviour condition;
+    public UnityEvent onInteract;
 
     bool characterInside;
     bool armed = true;
@@ -30,22 +32,23 @@ public class TaskTrigger : MonoBehaviour
     {
         if (other.GetComponent<PlayerMovement>() != requiredCharacter) return;
         characterInside = false;
-        armed = true;   // walking out re-arms the box
+        armed = true;
     }
 
     void Update()
     {
         if (!characterInside || !armed || requiredCharacter == null) return;
-        if (PlayerMovement.inputLocked) return;            // a minigame is open
-        if (!requiredCharacter.isControlled) return;       // must be the active character
+        if (PlayerMovement.inputLocked) return;
+        if (!requiredCharacter.isControlled) return;
         if (done && oneTimeOnly) return;
+        if (condition is ITaskCondition c && !c.CanStart) return;
 
         if (!autoStart)
         {
             if (Keyboard.current == null || !Keyboard.current[interactKey].wasPressedThisFrame) return;
         }
 
-        armed = false;   // prevents reopening right after the minigame closes
+        armed = false;
         done = true;
         Debug.Log($"{name} task triggered by {requiredCharacter.name}");
         onInteract.Invoke();

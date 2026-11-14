@@ -1,31 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Put this on the stage camera (same object as the Camera component).
-// Drops are drawn as soft blobs on the "LiquidFX" layer into a render texture.
-// A quad in front of the stage camera shows that texture through a threshold shader,
-// which merges nearby blobs into one smooth liquid shape.
 public class LiquidMetaball : MonoBehaviour
 {
     [Header("References")]
     public Camera stageCamera;
-    public Shader thresholdShader;   // Bartender/LiquidThreshold
-    public Shader blobShader;        // Bartender/LiquidBlob
+    public Shader thresholdShader;
+    public Shader blobShader;
 
     [Header("Layers (must exist)")]
     public string stageLayer = "Bartender";
     public string fxLayer = "LiquidFX";
 
     [Header("Look")]
-    [Range(0.05f, 1.5f)] public float threshold = 0.5f;   // higher = thinner, tighter liquid
-    [Range(0.001f, 0.3f)] public float softness = 0.04f;  // edge smoothness
-    [Range(0f, 1f)] public float rimWidth = 0.25f;        // width of the darker edge
-    [Range(0f, 1f)] public float rimDarken = 0.7f;        // 1 = no rim
+    [Range(0.05f, 1.5f)] public float threshold = 0.5f;
+    [Range(0.001f, 0.3f)] public float softness = 0.04f;
+    [Range(0f, 1f)] public float rimWidth = 0.25f;
+    [Range(0f, 1f)] public float rimDarken = 0.7f;
     [Range(0f, 1f)] public float opacity = 0.92f;
-    public float blobScale = 2.5f;                        // blob size relative to the drop; higher = more merging
-    [Range(0.25f, 1f)] public float resolution = 0.5f;    // render texture size relative to the screen
+    public float blobScale = 2.5f;
+    [Range(0.25f, 1f)] public float resolution = 0.5f;
     public float quadDistance = 2f;
-    public int sortingOrder = 0;                          // glass should be higher than this
+    public int sortingOrder = 0;
 
     RenderTexture rt;
     Camera liquidCam;
@@ -50,7 +46,6 @@ public class LiquidMetaball : MonoBehaviour
         blobSprite = MakeBlobSprite();
     }
 
-    // One material per liquid color, so the color doesn't depend on sprite vertex colors
     Material GetBlobMaterial(Color c)
     {
         if (!blobMats.TryGetValue(c, out var m) || m == null)
@@ -62,7 +57,6 @@ public class LiquidMetaball : MonoBehaviour
         return m;
     }
 
-    // Soft radial gradient generated in code, so no texture asset is needed
     static Sprite MakeBlobSprite()
     {
         int s = 64;
@@ -82,7 +76,7 @@ public class LiquidMetaball : MonoBehaviour
             }
         tex.SetPixels(px);
         tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);   // 1 unit wide
+        return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
     }
 
     public SpriteRenderer CreateBlob(Transform parent, Color color, float dropDiameter)
@@ -144,7 +138,7 @@ public class LiquidMetaball : MonoBehaviour
     {
         int w = Mathf.Max(64, Mathf.RoundToInt(Screen.width * resolution));
         int h = Mathf.Max(64, Mathf.RoundToInt(Screen.height * resolution));
-        rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf)   // depth 24: URP's Render Graph requires a depth buffer
+        rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf)
         {
             filterMode = FilterMode.Bilinear,
             wrapMode = TextureWrapMode.Clamp,
@@ -157,7 +151,6 @@ public class LiquidMetaball : MonoBehaviour
     {
         if (liquidCam == null || quad == null) return;
 
-        // Rebuild the texture if the window size changed
         int w = Mathf.Max(64, Mathf.RoundToInt(Screen.width * resolution));
         if (rt.width != w)
         {
@@ -169,13 +162,11 @@ public class LiquidMetaball : MonoBehaviour
             quadMat.SetTexture("_MainTex", rt);
         }
 
-        // Keep the liquid camera identical to the stage camera
         liquidCam.orthographic = stageCamera.orthographic;
         liquidCam.orthographicSize = stageCamera.orthographicSize;
         liquidCam.fieldOfView = stageCamera.fieldOfView;
         liquidCam.aspect = stageCamera.aspect;
 
-        // Fit the quad exactly to the stage camera's view
         Transform ct = stageCamera.transform;
         quad.position = ct.position + ct.forward * quadDistance;
         quad.rotation = ct.rotation;
