@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fea9863dc924b2244ac95d5a71e6a9cf, type: 3}
+  m_Name: Choccy milk
+  m_EditorClassIdentifier: Assembly-CSharp::DrinkData
+  drinkName: Choccy milk
+  bottleSprite: {fileID: 21300000, guid: 78eef7b78260a61419810350fed58e14, type: 3}
+  glassPrefab: {fileID: 523800228434718485, guid: 93b1f5ff84599f34484a2e1c0c71873c, type: 3}
+  liquidColor: {r: 0.7411765, g: 0.53333336, b: 0.4627451, a: 1}
+  mouthLocal: {x: 0, y: 1}
+  pourAngle: 125
+  maxTilt: 165
+  minFlow: 8
+  maxFlow: 35
+  points: 100
