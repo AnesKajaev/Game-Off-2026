@@ -48,7 +48,7 @@ public class TaskTrigger : MonoBehaviour
             if (Keyboard.current == null || !Keyboard.current[interactKey].wasPressedThisFrame) return;
         }
 
-        armed = false;
+        if (autoStart) armed = false;
         done = true;
         Debug.Log($"{name} task triggered by {requiredCharacter.name}");
         onInteract.Invoke();

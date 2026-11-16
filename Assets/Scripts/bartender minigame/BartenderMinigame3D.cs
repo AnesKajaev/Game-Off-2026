@@ -53,6 +53,8 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     public UnityEvent<int> onCustomerServed;
     public UnityEvent<int> onShiftFinished;
 
+    public static bool Active { get; private set; }
+
     class DropInfo { public Rigidbody2D rb; public DrinkData drink; }
     enum State { Idle, Pouring, Serving, Waiting }
 
@@ -107,6 +109,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         if (!CanStart) return;
         Physics2D.linearSleepTolerance = sleepSpeed;
         root.SetActive(true);
+        Active = true;
         PlayerMovement.inputLocked = true;
         StartShift();
     }
@@ -120,6 +123,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         state = State.Idle;
         PlayerPrefs.Save();
         root.SetActive(false);
+        Active = false;
         PlayerMovement.inputLocked = false;
     }
 

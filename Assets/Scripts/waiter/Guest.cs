@@ -224,7 +224,7 @@ public class Guest : MonoBehaviour
             GuiDraw.Bubble(HeadPoint, "...", 60f);
         else if (state == State.Ordering && PlayerMovement.SeesFoodUI)
             GuiDraw.Bubble(HeadPoint, speech);
-        else if (state == State.WaitingAtBar && PlayerMovement.CurrentIs(PlayerMovement.Role.Bartender))
+        else if (state == State.WaitingAtBar && PlayerMovement.CurrentIs(PlayerMovement.Role.Bartender) && !BartenderMinigame3D.Active)
             GuiDraw.Bubble(HeadPoint, "Drinks, please!", 150f);
     }
 }

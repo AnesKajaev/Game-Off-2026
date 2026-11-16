@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public static class GuiDraw
 {
@@ -44,6 +45,35 @@ public static class GuiDraw
         GUI.color = c;
         GUI.DrawTexture(r, White);
         GUI.color = old;
+    }
+
+    public static Vector2 MousePos()
+    {
+        if (Mouse.current == null) return new Vector2(-1000f, -1000f);
+        Vector2 p = Mouse.current.position.ReadValue();
+        return new Vector2(p.x, Screen.height - p.y);
+    }
+
+    public static void Label(Rect r, string msg, int size, Color color, TextAnchor anchor = TextAnchor.MiddleCenter)
+    {
+        var st = Text;
+        st.fontSize = size;
+        st.alignment = anchor;
+        st.normal.textColor = color;
+        GUI.Label(r, msg, st);
+        st.fontSize = 16;
+        st.alignment = TextAnchor.MiddleCenter;
+        st.normal.textColor = Color.black;
+    }
+
+    public static void Button(Rect r, string msg, bool hover, bool enabled = true, int size = 22)
+    {
+        Color c = !enabled ? new Color(0.45f, 0.45f, 0.45f)
+                : hover ? new Color(1f, 0.88f, 0.45f)
+                : new Color(0.93f, 0.76f, 0.32f);
+        Fill(new Rect(r.x + 3f, r.y + 3f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
+        Fill(r, c);
+        Label(r, msg, size, enabled ? Color.black : new Color(0.2f, 0.2f, 0.2f));
     }
 
     public static void Bubble(Vector3 worldPos, string msg, float width = 220f, float offsetY = 0f)
