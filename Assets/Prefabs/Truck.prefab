@@ -1,0 +1,243 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &465725303313951736
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.55
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0000003614275
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.39
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      propertyPath: m_Name
+      value: Truck
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 510335637693446999, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6710716293064158250}
+    - targetCorrespondingSourceObject: {fileID: 510335637693446999, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8880388751888996452}
+    - targetCorrespondingSourceObject: {fileID: 510335637693446999, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2902263693563638509}
+    - targetCorrespondingSourceObject: {fileID: 510335637693446999, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4761436099583963088}
+    - targetCorrespondingSourceObject: {fileID: -1138217764226193350, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4799170703285305280}
+    - targetCorrespondingSourceObject: {fileID: -1138217764226193350, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3733989383536131315}
+    - targetCorrespondingSourceObject: {fileID: -1138217764226193350, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 174121086332736390}
+    - targetCorrespondingSourceObject: {fileID: -1138217764226193350, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1337324957566666005}
+  m_SourcePrefab: {fileID: 100100000, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+--- !u!1 &100070114342260911 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 510335637693446999, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+  m_PrefabInstance: {fileID: 465725303313951736}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6710716293064158250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100070114342260911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 308c6ecbbb35c68448f5e3ff89ae1faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TruckDoorOpen
+  rotationAxis: 1
+  openAngle: 80
+  smoothSpeed: 5
+--- !u!65 &8880388751888996452
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100070114342260911}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.03, y: 0.03, z: 0.03}
+  m_Center: {x: 0.01, y: 0.005, z: 0}
+--- !u!54 &2902263693563638509
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100070114342260911}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &4761436099583963088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100070114342260911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: effa962c4a3ec3840a510276d02e2454, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorTrigger
+--- !u!1 &8521560685995508674 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1138217764226193350, guid: fb6302c1b57067d4fa7ba8309e3545d8, type: 3}
+  m_PrefabInstance: {fileID: 465725303313951736}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4799170703285305280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8521560685995508674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 308c6ecbbb35c68448f5e3ff89ae1faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TruckDoorOpen
+  rotationAxis: 1
+  openAngle: -80
+  smoothSpeed: 5
+--- !u!65 &3733989383536131315
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8521560685995508674}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.03, y: 0.03, z: 0.03}
+  m_Center: {x: -0.01, y: 0.005, z: 0}
+--- !u!54 &174121086332736390
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8521560685995508674}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1337324957566666005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8521560685995508674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: effa962c4a3ec3840a510276d02e2454, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorTrigger
