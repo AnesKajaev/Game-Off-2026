@@ -741,13 +741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cebb3c743a0af4247823e289e84a8421, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Stove
-  beefMinigame: {fileID: 1930042243}
-  labelPoint: {fileID: 0}
-  cookTime: 20
-  minHeatRate: 0.5
-  maxHeatRate: 1.6
-  perfectUntil: 1.25
-  burnAt: 1.5
+  minigame: {fileID: 1930042245}
 --- !u!65 &375862147
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1487,7 +1481,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OrderBoard
   paperColor: {r: 1, g: 0.97, b: 0.82, a: 1}
   inkColor: {r: 0.15, g: 0.12, b: 0.1, a: 1}
-  paperWidth: 190
+  paperWidth: 220
 --- !u!1 &733534960
 GameObject:
   m_ObjectHideFlags: 0
@@ -4099,7 +4093,7 @@ Transform:
   m_GameObject: {fileID: 1829399655}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 8, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4156,7 +4150,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.1, y: 1.1, z: 1.1}
+  m_Size: {x: 1, y: 1.4, z: 1.4}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1829399659
 MeshRenderer:
@@ -4387,7 +4381,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1930042244}
-  - component: {fileID: 1930042243}
+  - component: {fileID: 1930042245}
   m_Layer: 0
   m_Name: ChefMinigame
   m_TagString: Untagged
@@ -4395,39 +4389,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1930042243
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1930042242}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ad42a84aa3291748be5a82ca2d87e42, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BeefMinigame
-  meatTextures:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  saltTexture: {fileID: 0}
-  secondTextures:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  stoveTexture: {fileID: 0}
-  minShakeSpeed: 1
-  amountPerTravel: 0.4
-  targetAmount: 1
-  maxAmount: 1.3
-  returnSpeed: 10
-  autoAdvanceDelay: 0.8
-  minTemp: 80
-  maxTemp: 260
-  showIdealZone: 1
 --- !u!4 &1930042244
 Transform:
   m_ObjectHideFlags: 0
@@ -4443,6 +4404,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1966054241}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1930042245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930042242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: add9ddb6ac7e25440bb2de5c3beab724, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChefMinigame
+  art:
+  - name: meat
+    texture: {fileID: 0}
+  - name: salt
+    texture: {fileID: 0}
+  - name: oregano
+    texture: {fileID: 0}
+  - name: pan
+    texture: {fileID: 0}
+  - name: garlic
+    texture: {fileID: 0}
+  - name: oil
+    texture: {fileID: 0}
+  - name: spices
+    texture: {fileID: 0}
+  - name: egg
+    texture: {fileID: 0}
+  - name: bowl
+    texture: {fileID: 0}
+  - name: plate
+    texture: {fileID: 0}
+  - name: chicken
+    texture: {fileID: 0}
+  - name: brush
+    texture: {fileID: 0}
+  - name: vinegar
+    texture: {fileID: 0}
+  - name: lemon
+    texture: {fileID: 0}
+  - name: grill
+    texture: {fileID: 0}
+  - name: fish-head
+    texture: {fileID: 0}
+  - name: fish-body
+    texture: {fileID: 0}
+  - name: fish-tail
+    texture: {fileID: 0}
+  - name: cleaver
+    texture: {fileID: 0}
+  - name: nugget
+    texture: {fileID: 0}
+  - name: ground-meat
+    texture: {fileID: 0}
+  - name: meatball
+    texture: {fileID: 0}
+  secondsPerMinute: 6
+  sideSeconds: 6
+  ballsToMake: 5
 --- !u!1 &1957293239
 GameObject:
   m_ObjectHideFlags: 0
