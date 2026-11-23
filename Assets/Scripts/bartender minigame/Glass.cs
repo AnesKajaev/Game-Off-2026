@@ -3,7 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(EdgeCollider2D))]
 public class Glass : MonoBehaviour
 {
-    [Header("Inner outline: local space, origin = center of base. Go left rim -> bottom -> right rim")]
     public Vector2[] profile =
     {
         new Vector2(-0.4f, 1f), new Vector2(-0.4f, 0f),

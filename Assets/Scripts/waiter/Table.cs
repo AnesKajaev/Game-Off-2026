@@ -32,6 +32,37 @@ public class Table : MonoBehaviour
         return Label + " - Seat " + (System.Array.IndexOf(seats, s) + 1);
     }
 
+    public bool IsEmpty
+    {
+        get
+        {
+            foreach (var s in seats) if (s.Occupied) return false;
+            return true;
+        }
+    }
+
+    public static int EmptyTableCount(int minSeats = 1)
+    {
+        int n = 0;
+        foreach (var t in All) if (t.IsEmpty && t.seats.Length >= minSeats) n++;
+        return n;
+    }
+
+    public static Table PickEmpty(int minSeats)
+    {
+        var list = new List<Table>();
+        foreach (var t in All) if (t.IsEmpty && t.seats.Length >= minSeats) list.Add(t);
+        return list.Count == 0 ? null : list[Random.Range(0, list.Count)];
+    }
+
+    public bool TryPickFreeSeat(out Seat seat)
+    {
+        var free = new List<Seat>();
+        foreach (var s in seats) if (!s.Occupied) free.Add(s);
+        seat = free.Count == 0 ? null : free[Random.Range(0, free.Count)];
+        return seat != null;
+    }
+
     public static int FreeSeatCount()
     {
         int n = 0;

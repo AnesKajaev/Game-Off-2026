@@ -9,7 +9,7 @@ public class PlayerMovement : MonoBehaviour
 
     public static PlayerMovement Current { get; private set; }
     public static bool inputLocked;
-    public static bool SeesFoodUI => Current != null && (Current.role == Role.Waiter || Current.role == Role.Chef);
+    public static bool SeesFoodUI => Current != null && !ChefMinigame.Active && (Current.role == Role.Waiter || Current.role == Role.Chef);
     public static bool CurrentIs(Role r) => Current != null && Current.role == r;
 
     public float speed = 5f;

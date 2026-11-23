@@ -12,9 +12,12 @@ public class TaskTrigger : MonoBehaviour
     [Tooltip("Optional: the task only starts while this script says CanStart (the bartender minigame uses this)")]
     public MonoBehaviour condition;
     public UnityEvent onInteract;
+    [Tooltip("Runs when the player tries to use the box but the condition says not yet, for example to show a message")]
+    public UnityEvent onBlocked;
 
     bool characterInside;
     bool armed = true;
+    bool blockedShown;
     bool done;
 
     void Reset()
@@ -33,6 +36,7 @@ public class TaskTrigger : MonoBehaviour
         if (other.GetComponent<PlayerMovement>() != requiredCharacter) return;
         characterInside = false;
         armed = true;
+        blockedShown = false;
     }
 
     void Update()
@@ -41,16 +45,23 @@ public class TaskTrigger : MonoBehaviour
         if (PlayerMovement.inputLocked) return;
         if (!requiredCharacter.isControlled) return;
         if (done && oneTimeOnly) return;
-        if (condition is ITaskCondition c && !c.CanStart) return;
 
-        if (!autoStart)
+        bool attempt = autoStart || (Keyboard.current != null && Keyboard.current[interactKey].wasPressedThisFrame);
+        if (!attempt) return;
+
+        if (condition is ITaskCondition c && !c.CanStart)
         {
-            if (Keyboard.current == null || !Keyboard.current[interactKey].wasPressedThisFrame) return;
+            if (!autoStart || !blockedShown)
+            {
+                c.OnBlocked();
+                onBlocked.Invoke();
+            }
+            blockedShown = true;
+            return;
         }
 
-        armed = false;
+        if (autoStart) armed = false;
         done = true;
-        Debug.Log($"{name} task triggered by {requiredCharacter.name}");
         onInteract.Invoke();
     }
 }
