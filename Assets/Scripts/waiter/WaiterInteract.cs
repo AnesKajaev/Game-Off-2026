@@ -9,6 +9,7 @@ public class WaiterInteract : MonoBehaviour
 
     PlayerMovement pm;
     Guest target;
+    bool serving;
 
     void Awake() => pm = GetComponent<PlayerMovement>();
 
@@ -17,25 +18,42 @@ public class WaiterInteract : MonoBehaviour
         target = null;
         if (!pm.isControlled || PlayerMovement.inputLocked) return;
 
+        var hands = WaiterHands.Instance;
         float best = range * range;
         foreach (var g in Guest.All)
         {
-            if (!g.NeedsOrder) continue;
+            bool canServe = hands != null && hands.HasDishFor(g);
+            if (!g.NeedsOrder && !canServe) continue;
+
             Vector3 d = g.transform.position - transform.position;
             d.y = 0f;
-            if (d.sqrMagnitude < best) { best = d.sqrMagnitude; target = g; }
+            if (d.sqrMagnitude < best)
+            {
+                best = d.sqrMagnitude;
+                target = g;
+                serving = canServe;
+            }
         }
 
-        if (target != null && Keyboard.current != null && Keyboard.current[interactKey].wasPressedThisFrame)
-        {
-            target.TakeOrder();
-            target = null;
-        }
+        if (target == null || Keyboard.current == null || !Keyboard.current[interactKey].wasPressedThisFrame) return;
+
+        if (serving) Serve(target);
+        else target.TakeOrder();
+        target = null;
+    }
+
+    void Serve(Guest g)
+    {
+        var hands = WaiterHands.Instance;
+        Dish d = hands.DishFor(g);
+        hands.Remove(d);
+        g.Receive(d);
+        hands.Say("Served the " + d.Name.ToLower() + " (" + Mathf.RoundToInt(d.quality * 100f) + "%)");
     }
 
     void OnGUI()
     {
         if (target != null && Event.current.type == EventType.Repaint)
-            GuiDraw.Bubble(target.HeadPoint, "Press " + interactKey, 110f, -42f);
+            GuiDraw.Bubble(target.HeadPoint, "Press " + interactKey + (serving ? " to serve" : ""), 150f, -42f);
     }
 }

@@ -15,6 +15,8 @@ public static class Menu
 [System.Serializable]
 public class Order
 {
+    public static bool AlwaysIncludeMeat = true;
+
     public string meat;
     public string side;
     public string extra;
@@ -24,6 +26,7 @@ public class Order
     public static Order Generate()
     {
         int mask = Random.Range(1, 8);
+        if (AlwaysIncludeMeat) mask |= 1;
         var o = new Order();
         if ((mask & 1) != 0)
         {

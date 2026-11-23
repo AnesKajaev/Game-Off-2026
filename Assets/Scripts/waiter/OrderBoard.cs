@@ -191,6 +191,7 @@ public class OrderNote
     public float angle;
     public Order order;
     public bool claimed;
+    public Guest guest;
 }
 
 public class OrderBoard : MonoBehaviour
@@ -207,15 +208,17 @@ public class OrderBoard : MonoBehaviour
     void Awake() => Instance = this;
     void OnDestroy() { if (Instance == this) Instance = null; }
 
-    public void Add(string label, Order order)
+    public OrderNote Add(string label, Order order)
     {
-        notes.Add(new OrderNote
+        var n = new OrderNote
         {
             title = label,
             lines = order.Lines(),
             order = order,
             angle = Random.Range(-3f, 3f)
-        });
+        };
+        notes.Add(n);
+        return n;
     }
 
     public OrderNote Claim(MeatType m)
@@ -233,6 +236,8 @@ public class OrderBoard : MonoBehaviour
     {
         if (n != null) n.claimed = false;
     }
+
+    public void Remove(OrderNote n) => notes.Remove(n);
 
     public void Remove(string label) => notes.RemoveAll(n => n.title == label);
     public void Clear() => notes.Clear();

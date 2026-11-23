@@ -22,6 +22,16 @@ public class WaiterHands : MonoBehaviour
     }
 
     public void Add(Dish d) => carrying.Add(d);
+    public void Remove(Dish d) => carrying.Remove(d);
+
+    public Dish DishFor(Guest g)
+    {
+        foreach (var d in carrying)
+            if (d.note != null && d.note.guest == g) return d;
+        return null;
+    }
+
+    public bool HasDishFor(Guest g) => g.CanReceive && DishFor(g) != null;
 
     public void Say(string msg)
     {

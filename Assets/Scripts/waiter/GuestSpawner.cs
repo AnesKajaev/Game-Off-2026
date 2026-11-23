@@ -6,6 +6,7 @@ public class GuestSpawner : MonoBehaviour
     public Guest guestPrefab;
     public Transform spawnPoint;
     public Transform entrancePoint;
+    public Transform exitPoint;
     public float spawnInterval = 6f;
     public float firstDelay = 2f;
     public Sprite[] looks;
@@ -45,6 +46,6 @@ public class GuestSpawner : MonoBehaviour
         if (looks != null && looks.Length > 0) g.sprite.sprite = looks[Random.Range(0, looks.Length)];
 
         seat.Reserve(g);
-        g.Init(table, seat, entrancePoint);
+        g.Init(table, seat, entrancePoint, exitPoint != null ? exitPoint : spawnPoint);
     }
 }
