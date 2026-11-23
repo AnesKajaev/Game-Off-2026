@@ -37,6 +37,15 @@ public class ChefHands : MonoBehaviour
         forNote = note;
     }
 
+    public Dish Give()
+    {
+        var d = new Dish { meat = meat, quality = quality, doneness = doneness, nuggets = nuggets, note = forNote };
+        kind = Kind.Empty;
+        quality = 0f;
+        forNote = null;
+        return d;
+    }
+
     public void Clear()
     {
         OrderBoard.Instance.Release(forNote);

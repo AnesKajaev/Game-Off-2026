@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class GuestSpawner : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class GuestSpawner : MonoBehaviour
     public float firstDelay = 2f;
     public Sprite[] looks;
 
+    [Header("Pairs")]
+    [Range(0f, 1f)] public float pairChance = 0.4f;
+    public float pairSpacing = 0.25f;
+
     float timer;
 
     void Start() => timer = firstDelay;
@@ -17,21 +22,27 @@ public class GuestSpawner : MonoBehaviour
     {
         timer -= Time.deltaTime;
         if (timer > 0f) return;
-
-        if (Table.FreeSeatCount() == 0) return;
+        if (Table.EmptyTableCount() == 0) return;
 
         timer = spawnInterval;
-        Spawn();
+
+        int size = Random.value < pairChance && Table.EmptyTableCount(2) > 0 ? 2 : 1;
+        Table table = Table.PickEmpty(size);
+        for (int k = 0; k < size; k++)
+            SpawnGuest(k, table);
     }
 
-    void Spawn()
+    void SpawnGuest(int index, Table table)
     {
-        if (guestPrefab == null || spawnPoint == null) return;
-        if (!Table.TryPickFree(out Table table, out Seat seat)) return;
+        Seat seat;
+        table.TryPickFreeSeat(out seat);
 
-        Guest g = Instantiate(guestPrefab, spawnPoint.position, Quaternion.identity);
-        if (looks != null && looks.Length > 0 && g.sprite != null)
-            g.sprite.sprite = looks[Random.Range(0, looks.Length)];
+        Vector3 pos = spawnPoint.position + Vector3.right * pairSpacing * index;
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(pos, out hit, 1f, NavMesh.AllAreas)) pos = hit.position;
+
+        Guest g = Instantiate(guestPrefab, pos, Quaternion.identity);
+        if (looks != null && looks.Length > 0) g.sprite.sprite = looks[Random.Range(0, looks.Length)];
 
         seat.Reserve(g);
         g.Init(table, seat, entrancePoint);

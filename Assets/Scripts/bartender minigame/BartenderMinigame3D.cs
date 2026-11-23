@@ -55,6 +55,10 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
     public static bool Active { get; private set; }
 
+    [Header("Waiting message")]
+    public InfoPopup noGuestsPopup;
+    [TextArea] public string waitMessage = "There is no one at the bar yet. You have to wait for a guest.";
+
     class DropInfo { public Rigidbody2D rb; public DrinkData drink; }
     enum State { Idle, Pouring, Serving, Waiting }
 
@@ -79,6 +83,11 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     }
 
     public bool CanStart => BarCounter.Instance != null && BarCounter.Instance.NextCustomer() != null;
+
+    public void OnBlocked()
+    {
+        if (noGuestsPopup != null) noGuestsPopup.ShowText(waitMessage);
+    }
 
     List<DrinkData> PickRequest()
     {
@@ -106,7 +115,11 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
     public void Open()
     {
-        if (!CanStart) return;
+        if (!CanStart)
+        {
+            OnBlocked();
+            return;
+        }
         Physics2D.linearSleepTolerance = sleepSpeed;
         root.SetActive(true);
         Active = true;
