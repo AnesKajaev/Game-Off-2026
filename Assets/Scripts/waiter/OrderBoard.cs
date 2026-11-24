@@ -146,6 +146,14 @@ public static class GuiDraw
         st.normal.textColor = Color.black;
     }
 
+    public static void Outline(Rect r, float t = 2f)
+    {
+        Fill(new Rect(r.x, r.y, r.width, t), Color.white);
+        Fill(new Rect(r.x, r.yMax - t, r.width, t), Color.white);
+        Fill(new Rect(r.x, r.y, t, r.height), Color.white);
+        Fill(new Rect(r.xMax - t, r.y, t, r.height), Color.white);
+    }
+
     public static void Frame(Rect r, float fill = 0f, float t = 2f)
     {
         Fill(r, Color.white);

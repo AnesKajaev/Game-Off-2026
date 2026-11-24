@@ -54,6 +54,14 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     public UnityEvent<int> onShiftFinished;
 
     public static bool Active { get; private set; }
+    public static BartenderMinigame3D Instance { get; private set; }
+
+    void Awake() => Instance = this;
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     [Header("Waiting message")]
     public InfoPopup noGuestsPopup;
@@ -72,6 +80,8 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     string message = "";
     Guest customer;
     int orders;
+    CameraClearFlags savedFlags;
+    Color savedBackground;
     int customersServed;
     float waitCheck;
 
@@ -89,7 +99,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         if (noGuestsPopup != null) noGuestsPopup.ShowText(waitMessage);
     }
 
-    List<DrinkData> PickRequest()
+    public List<DrinkData> PickRequest()
     {
         var pool = new List<DrinkData>();
         for (int i = 0; drinks != null && i < drinks.Length; i++)
@@ -121,6 +131,10 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
             return;
         }
         Physics2D.linearSleepTolerance = sleepSpeed;
+        savedFlags = stageCamera.clearFlags;
+        savedBackground = stageCamera.backgroundColor;
+        stageCamera.clearFlags = CameraClearFlags.SolidColor;
+        stageCamera.backgroundColor = Color.black;
         root.SetActive(true);
         Active = true;
         PlayerMovement.inputLocked = true;
@@ -135,6 +149,8 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         customer = null;
         state = State.Idle;
         PlayerPrefs.Save();
+        stageCamera.clearFlags = savedFlags;
+        stageCamera.backgroundColor = savedBackground;
         root.SetActive(false);
         Active = false;
         PlayerMovement.inputLocked = false;
@@ -249,6 +265,15 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         float dt = Time.deltaTime;
         CleanupDrops();
 
+        if ((state == State.Pouring || state == State.Serving) && (customer == null || !customer.NeedsDrinks))
+        {
+            StopAllCoroutines();
+            ClearAll();
+            EnterWaiting();
+            message = "The guest got tired of waiting and left the bar";
+            return;
+        }
+
         UpdateBottle(kb, mouse, dt);
         if (state == State.Waiting)
         {
@@ -256,12 +281,6 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         }
         else if (state == State.Pouring)
         {
-            if (customer == null)
-            {
-                ClearAll();
-                EnterWaiting();
-                return;
-            }
             Pour(dt);
             CheckSettled(dt);
         }
@@ -525,19 +544,70 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
     void OnGUI()
     {
-        if (!root.activeSelf) return;
+        if (!root.activeSelf || Event.current.type != EventType.Repaint) return;
 
-        var big = new GUIStyle(GUI.skin.label) { fontSize = 28, alignment = TextAnchor.UpperCenter };
-        big.normal.textColor = Color.white;
-        GUI.Label(new Rect(0, 20, Screen.width, 50), message, big);
+        GuiDraw.Outline(ChefStep.N(0.03f, 0.04f, 0.94f, 0.92f));
 
-        var small = new GUIStyle(GUI.skin.label) { fontSize = 18 };
-        small.normal.textColor = Color.white;
+        GuiDraw.Label(ChefStep.N(0.07f, 0.06f, 0.5f, 0.08f), "Make the drinks", ChefStep.FS(0.05f), Color.white, TextAnchor.MiddleLeft);
+        GuiDraw.Label(ChefStep.N(0.07f, 0.14f, 0.64f, 0.08f),
+            "Move the bottle with the mouse. Scroll up to tilt it and keep scrolling to hold it. " + switchKey + " switches bottle.",
+            ChefStep.FS(0.02f), Color.white, TextAnchor.UpperLeft);
+
+        DrawOrderPanel();
+
         string bottleName = drinks.Length > 0 ? drinks[drinkIndex].drinkName : "-";
-        GUI.Label(new Rect(20, 20, 420, 100),
-            "Bottle: " + bottleName + "  (" + switchKey + " to switch)\n" +
-            "Score: " + totalScore + "   Guests served: " + customersServed + (customer != null ? "   Glass " + Mathf.Min(served + 1, orders) + "/" + orders : ""),
-            small);
+        GuiDraw.Label(ChefStep.N(0.07f, 0.84f, 0.4f, 0.05f), "Bottle: " + bottleName, ChefStep.FS(0.026f), Color.white, TextAnchor.MiddleLeft);
+
+        string status = message;
+        if (state == State.Pouring && current != null && !isPouring && current.drink != drinks[drinkIndex])
+            status = "This glass needs " + current.drink.drinkName + ". Press " + switchKey + " to switch bottle.";
+        GuiDraw.Label(ChefStep.N(0.25f, 0.9f, 0.5f, 0.06f), status, ChefStep.FS(0.03f), Color.white);
+
+        GuiDraw.Label(ChefStep.N(0.07f, 0.9f, 0.2f, 0.05f), "Esc to leave", ChefStep.FS(0.02f), Color.white, TextAnchor.MiddleLeft);
+        GuiDraw.Label(ChefStep.N(0.62f, 0.9f, 0.32f, 0.05f), "Score " + totalScore + "   Guests served " + customersServed,
+            ChefStep.FS(0.022f), Color.white, TextAnchor.MiddleRight);
+    }
+
+    void DrawOrderPanel()
+    {
+        Rect r = ChefStep.N(0.74f, 0.06f, 0.2f, 0.3f);
+        GuiDraw.Frame(r);
+        int fs = ChefStep.FS(0.022f);
+
+        if (customer == null || customer.drinkRequest == null)
+        {
+            GuiDraw.Label(r, "No guest at the bar", fs, Color.white);
+            return;
+        }
+
+        GuiDraw.Label(new Rect(r.x, r.y + 6f, r.width, ChefStep.H(0.045f)), "The guest wants", ChefStep.FS(0.026f), Color.white);
+
+        float rowH = ChefStep.H(0.05f);
+        float y = r.y + ChefStep.H(0.055f);
+        for (int k = 0; k < customer.drinkRequest.Count; k++)
+        {
+            var row = new Rect(r.x + 10f, y, r.width - 20f, rowH);
+            string text = (k + 1) + ". " + customer.drinkRequest[k].drinkName;
+            if (k < served)
+            {
+                GuiDraw.Label(row, text + "  (done)", fs, new Color(0.5f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
+            }
+            else if (k == served)
+            {
+                GuiDraw.Fill(row, Color.white);
+                GuiDraw.Label(row, text, fs, Color.black, TextAnchor.MiddleLeft);
+            }
+            else
+            {
+                GuiDraw.Label(row, text, fs, Color.white, TextAnchor.MiddleLeft);
+            }
+            y += rowH + 4f;
+        }
+
+        GuiDraw.Label(new Rect(r.x + 10f, y + 4f, r.width - 20f, ChefStep.H(0.04f)), "Patience", fs, Color.white, TextAnchor.MiddleLeft);
+        var bar = new Rect(r.x + 10f, y + ChefStep.H(0.045f), r.width - 20f, ChefStep.H(0.02f));
+        GuiDraw.Frame(bar);
+        GuiDraw.Fill(new Rect(bar.x + 2f, bar.y + 2f, (bar.width - 4f) * customer.PatienceLeft01, bar.height - 4f), Color.white);
     }
 
     void OnDrawGizmosSelected()

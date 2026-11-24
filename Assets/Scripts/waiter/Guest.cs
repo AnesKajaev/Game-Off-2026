@@ -24,6 +24,8 @@ public class Guest : MonoBehaviour
     public float barDelayMin = 15f;
     public float barDelayMax = 45f;
     public int maxBarTrips = 1;
+    [Tooltip("Seconds a guest waits at the bar before giving up. 0 = waits forever")]
+    public float barPatience = 45f;
 
     [HideInInspector] public Table table;
     [HideInInspector] public Seat seat;
@@ -34,6 +36,7 @@ public class Guest : MonoBehaviour
     public bool NeedsOrder => state == State.WaitingForWaiter;
     public bool NeedsDrinks => state == State.WaitingAtBar;
     public bool CanReceive => state == State.WaitingForFood;
+    public float PatienceLeft01 => barPatience <= 0f ? 1f : Mathf.Clamp01(1f - barWait / barPatience);
     public float satisfaction { get; private set; }
     public Vector3 HeadPoint => transform.position + Vector3.up * headHeight;
 
@@ -44,6 +47,7 @@ public class Guest : MonoBehaviour
     OrderNote note;
     bool leaving;
     float eatTimer;
+    float barWait;
     string reaction = "";
     float reactionTimer;
     State resumeState = State.WaitingForWaiter;
@@ -163,7 +167,20 @@ public class Guest : MonoBehaviour
                 break;
 
             case State.WalkingToBar:
-                if (agent.isOnNavMesh && Arrived()) state = State.WaitingAtBar;
+                if (agent.isOnNavMesh && Arrived())
+                {
+                    barWait = 0f;
+                    if (BartenderMinigame3D.Instance != null) drinkRequest = BartenderMinigame3D.Instance.PickRequest();
+                    state = State.WaitingAtBar;
+                }
+                break;
+
+            case State.WaitingAtBar:
+                if (barPatience > 0f)
+                {
+                    barWait += dt;
+                    if (barWait >= barPatience) GiveUpBar();
+                }
                 break;
 
             case State.Eating:
@@ -238,6 +255,37 @@ public class Guest : MonoBehaviour
         state = State.Ordering;
     }
 
+    static string DrinkList(List<DrinkData> list)
+    {
+        var names = new List<string>();
+        foreach (var d in list) names.Add(d.drinkName.ToLower());
+        if (names.Count == 1) return names[0];
+        if (names.Count == 2) return names[0] + " and " + names[1];
+        return string.Join(", ", names.GetRange(0, names.Count - 1)) + " and " + names[names.Count - 1];
+    }
+
+    void GiveUpBar()
+    {
+        BarCounter.Instance.Release(this);
+        barSpot = null;
+        reaction = "Too slow, I'm going back.";
+        reactionTimer = 3f;
+        agent.SetDestination(seat.approachPoint.position);
+        state = State.ReturningToSeat;
+    }
+
+    void DrawBarBubble()
+    {
+        string text = drinkRequest != null && drinkRequest.Count > 0 ? "I'd like " + DrinkList(drinkRequest) + "." : "Drinks, please!";
+        GuiDraw.Bubble(HeadPoint, text, 260f);
+
+        Vector3 sp = Camera.main.WorldToScreenPoint(HeadPoint);
+        if (sp.z <= 0f) return;
+        var bar = new Rect(sp.x - 75f, Screen.height - sp.y + 6f, 150f, 10f);
+        GuiDraw.Frame(bar);
+        GuiDraw.Fill(new Rect(bar.x + 2f, bar.y + 2f, (bar.width - 4f) * PatienceLeft01, bar.height - 4f), Color.white);
+    }
+
     public void Receive(Dish d)
     {
         if (state != State.WaitingForFood) return;
@@ -264,7 +312,7 @@ public class Guest : MonoBehaviour
     {
         if (Event.current.type != EventType.Repaint) return;
 
-        if (reactionTimer > 0f && PlayerMovement.SeesFoodUI)
+        if (reactionTimer > 0f && (PlayerMovement.SeesFoodUI || PlayerMovement.CurrentIs(PlayerMovement.Role.Bartender)))
         {
             GuiDraw.Bubble(HeadPoint, reaction);
             return;
@@ -275,6 +323,6 @@ public class Guest : MonoBehaviour
         else if (state == State.Ordering && PlayerMovement.SeesFoodUI)
             GuiDraw.Bubble(HeadPoint, speech);
         else if (state == State.WaitingAtBar && PlayerMovement.CurrentIs(PlayerMovement.Role.Bartender) && !BartenderMinigame3D.Active)
-            GuiDraw.Bubble(HeadPoint, "Drinks, please!", 150f);
+            DrawBarBubble();
     }
 }
