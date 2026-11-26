@@ -69,6 +69,7 @@ public class BeefSeasonStep : ChefStep
             if (MeatRect.Contains(h.Center) && shake > MinShake)
             {
                 float add = travel * PerTravel;
+                Sfx.PlayLimited(Sfx.SaltShaker, 0.12f);
                 if (h == salt) saltAmount = Mathf.Min(MaxAmount, saltAmount + add);
                 else oreganoAmount = Mathf.Min(MaxAmount, oreganoAmount + add);
                 AddSpecks(h, add);
@@ -138,6 +139,7 @@ public class BeefPanStep : ChefStep
     float holdTimer;
     bool inPan;
     Doneness result;
+    SfxLoop fry;
 
     Rect PanRect => N(0.5f, 0.3f, 0.38f, 0.26f);
     Rect DisplayRect => N(0.14f, 0.64f, 0.18f, 0.16f);
@@ -162,6 +164,8 @@ public class BeefPanStep : ChefStep
         if (!inPan && set.released == meat && PanRect.Contains(meat.Center))
         {
             inPan = true;
+            Sfx.Play(Sfx.StoveOn);
+            fry = Sfx.Loop(Sfx.Frying);
             meat.stay = true;
             meat.locked = true;
             meat.pos = Nrm(PanRect.center);
@@ -181,11 +185,16 @@ public class BeefPanStep : ChefStep
             {
                 temp += dir;
                 holdTimer = 0f;
+                Sfx.Play(Sfx.ThermostatBeep);
             }
             else
             {
                 holdTimer += i.dt;
-                if (holdTimer > 0.35f) temp += dir * 15f * i.dt;
+                if (holdTimer > 0.35f)
+                {
+                    temp += dir * 15f * i.dt;
+                    Sfx.PlayLimited(Sfx.ThermostatBeep, 0.15f);
+                }
             }
         }
         else
@@ -193,6 +202,7 @@ public class BeefPanStep : ChefStep
             holdTimer = 0f;
         }
         temp = Mathf.Clamp(temp, 20f, 100f);
+        Sfx.Param(fry, "Heat", Mathf.InverseLerp(20f, 100f, temp));
 
         meat.shade = Mathf.Lerp(0.9f, 0.12f, (int)Current / 6f);
     }
@@ -218,6 +228,8 @@ public class BeefPanStep : ChefStep
 
         DrawDrags(set);
     }
+
+    public override void End() => Sfx.StopLoop(ref fry);
 
     public override void OnAction()
     {

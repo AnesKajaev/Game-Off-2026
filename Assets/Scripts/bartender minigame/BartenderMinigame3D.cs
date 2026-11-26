@@ -80,6 +80,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     string message = "";
     Guest customer;
     int orders;
+    SfxLoop pourLoop;
     CameraClearFlags savedFlags;
     Color savedBackground;
     int customersServed;
@@ -219,6 +220,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
     void ClearAll()
     {
+        Sfx.StopLoop(ref pourLoop);
         foreach (var di in drops) if (di.rb) Destroy(di.rb.gameObject);
         drops.Clear();
         if (current) Destroy(current.gameObject);
@@ -259,7 +261,12 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         var mouse = Mouse.current;
         if (kb == null || mouse == null) return;
 
-        if (kb[Key.Escape].wasPressedThisFrame) { Close(); return; }
+        if (kb[Key.Escape].wasPressedThisFrame)
+        {
+            Sfx.Play(Sfx.UiBack);
+            Close();
+            return;
+        }
         if (state == State.Idle) return;
 
         float dt = Time.deltaTime;
@@ -289,7 +296,10 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
     void UpdateBottle(Keyboard kb, Mouse mouse, float dt)
     {
         if (kb[switchKey].wasPressedThisFrame && drinks.Length > 1)
+        {
+            Sfx.Play(Sfx.BottleSwap);
             SelectDrink((drinkIndex + 1) % drinks.Length);
+        }
         var d = drinks[drinkIndex];
 
         float scroll = mouse.scroll.ReadValue().y;
@@ -323,8 +333,11 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         var d = drinks[drinkIndex];
         float t = Mathf.InverseLerp(d.pourAngle, d.maxTilt, tilt);
         float flow = tilt > d.pourAngle ? Mathf.Lerp(d.minFlow, d.maxFlow, t) : 0f;
+        if (BarStock.Count(d) <= 0) flow = 0f;
 
         isPouring = flow > 0f;
+        if (isPouring && pourLoop == null) pourLoop = Sfx.Loop(Sfx.LiquidFill);
+        else if (!isPouring && pourLoop != null) Sfx.StopLoop(ref pourLoop);
         if (!isPouring) { spawnAcc = 0f; return; }
 
         spawnAcc += flow * dt;
@@ -334,7 +347,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
         while (spawnAcc >= 1f)
         {
             spawnAcc -= 1f;
-            if (drops.Count < maxDrops) SpawnDrop(d, t);
+            if (drops.Count < maxDrops && BarStock.Use(d)) SpawnDrop(d, t);
         }
     }
 
@@ -533,6 +546,7 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
     IEnumerator Slide(Transform t, Vector3 to)
     {
+        Sfx.Play(Sfx.GlassSlide);
         Vector3 from = t.position;
         for (float e = 0f; e < slideTime; e += Time.deltaTime)
         {
@@ -555,12 +569,14 @@ public class BartenderMinigame3D : MonoBehaviour, ITaskCondition
 
         DrawOrderPanel();
 
-        string bottleName = drinks.Length > 0 ? drinks[drinkIndex].drinkName : "-";
+        string bottleName = drinks.Length > 0 ? drinks[drinkIndex].drinkName + "  (" + Mathf.RoundToInt(BarStock.Fraction(drinks[drinkIndex]) * 100f) + "%)" : "-";
         GuiDraw.Label(ChefStep.N(0.07f, 0.84f, 0.4f, 0.05f), "Bottle: " + bottleName, ChefStep.FS(0.026f), Color.white, TextAnchor.MiddleLeft);
 
         string status = message;
         if (state == State.Pouring && current != null && !isPouring && current.drink != drinks[drinkIndex])
             status = "This glass needs " + current.drink.drinkName + ". Press " + switchKey + " to switch bottle.";
+        if (drinks.Length > 0 && BarStock.Count(drinks[drinkIndex]) <= 0)
+            status = "The " + drinks[drinkIndex].drinkName + " bottle is empty. Fetch a new one from the storage.";
         GuiDraw.Label(ChefStep.N(0.25f, 0.9f, 0.5f, 0.06f), status, ChefStep.FS(0.03f), Color.white);
 
         GuiDraw.Label(ChefStep.N(0.07f, 0.9f, 0.2f, 0.05f), "Esc to leave", ChefStep.FS(0.02f), Color.white, TextAnchor.MiddleLeft);

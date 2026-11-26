@@ -166,8 +166,20 @@ public static class GuiDraw
         FillRot(new Rect(r.x + t, r.y + t, r.width - 2f * t, r.height - 2f * t), angle, new Color(fill, fill, fill));
     }
 
+    static Vector2 hoverKey;
+    static int hoverFrame = -10;
+
+    static void HoverSound(Rect r)
+    {
+        Vector2 key = r.position;
+        if (key != hoverKey || Time.frameCount - hoverFrame > 1) Sfx.Play(Sfx.UiHover);
+        hoverKey = key;
+        hoverFrame = Time.frameCount;
+    }
+
     public static void Button(Rect r, string msg, bool hover, bool enabled = true, int size = 22)
     {
+        if (hover && enabled) HoverSound(r);
         Color gray = new Color(0.4f, 0.4f, 0.4f);
         Fill(r, enabled ? Color.white : gray);
         bool solid = enabled && !hover;

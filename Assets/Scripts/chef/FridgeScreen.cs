@@ -15,8 +15,30 @@ public class FridgeScreen : MonoBehaviour
 
     public void Open()
     {
+        CrateHands crates = CrateHands.Mine;
+        if (crates != null && crates.carrying != null)
+        {
+            Refill(crates);
+            return;
+        }
+
         open = true;
         PlayerMovement.inputLocked = true;
+    }
+
+    void Refill(CrateHands crates)
+    {
+        Crate c = crates.carrying;
+        if (c.IsDrink)
+        {
+            crates.Say("Bottles go to the bar, not the fridge");
+            return;
+        }
+
+        FridgeStock.Refill(c.meat);
+        crates.Say("Restocked the " + MeatInfo.Raw(c.meat).ToLower());
+        crates.Drop();
+        Sfx.Play(Sfx.UiSelect);
     }
 
     public void Close()
@@ -29,7 +51,12 @@ public class FridgeScreen : MonoBehaviour
     {
         if (!open) return;
 
-        if (Keyboard.current[Key.Escape].wasPressedThisFrame) { Close(); return; }
+        if (Keyboard.current[Key.Escape].wasPressedThisFrame)
+        {
+            Sfx.Play(Sfx.UiBack);
+            Close();
+            return;
+        }
         if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
         Vector2 m = GuiDraw.MousePos();
@@ -38,6 +65,14 @@ public class FridgeScreen : MonoBehaviour
         for (int i = 0; i < options.Length; i++)
         {
             if (!OptionRect(i).Contains(m)) continue;
+            if (FridgeStock.Count(options[i]) <= 0)
+            {
+                hands.Say("Out of " + MeatInfo.Raw(options[i]).ToLower() + ". Get a crate from the storage.");
+                return;
+            }
+            Sfx.Play(Sfx.UiSelect);
+            if (hands.kind == ChefHands.Kind.Raw) FridgeStock.Return(hands.meat);
+            FridgeStock.Take(options[i]);
             hands.HoldRaw(options[i]);
             hands.Say("Took " + MeatInfo.Raw(options[i]).ToLower());
             Close();
@@ -46,6 +81,8 @@ public class FridgeScreen : MonoBehaviour
 
         if (!hands.Empty && PutAwayRect.Contains(m))
         {
+            Sfx.Play(Sfx.UiSelect);
+            if (hands.kind == ChefHands.Kind.Raw) FridgeStock.Return(hands.meat);
             hands.Clear();
             Close();
         }
@@ -64,7 +101,8 @@ public class FridgeScreen : MonoBehaviour
         for (int i = 0; i < options.Length; i++)
         {
             Rect r = OptionRect(i);
-            GuiDraw.Button(r, MeatInfo.Raw(options[i]), r.Contains(m), true, FS(0.034f));
+            int left = FridgeStock.Count(options[i]);
+            GuiDraw.Button(r, MeatInfo.Raw(options[i]) + (left > 0 ? "   " + left : "   empty"), r.Contains(m), left > 0, FS(0.034f));
         }
 
         if (!ChefHands.Instance.Empty)

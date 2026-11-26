@@ -147,6 +147,7 @@ public abstract class ChefStep
     public abstract void Tick(ChefInput i);
     public abstract void Draw(ChefInput i);
     public virtual void OnAction() { done = true; }
+    public virtual void End() { }
     public abstract void Scores(List<ScoreLine> list);
 
     public static Rect N(float x, float y, float w, float h) => new Rect(x * Screen.width, y * Screen.height, w * Screen.width, h * Screen.height);

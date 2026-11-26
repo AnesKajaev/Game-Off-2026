@@ -34,6 +34,7 @@ public class FishTrimStep : ChefStep
         float gx = guideX * Screen.width;
         if ((prevX - gx) * (curX - gx) > 0f || prevX == curX) return;
         p.falling = true;
+        Sfx.Play(Sfx.KnifeChop);
         p.vel = new Vector2(0.25f * dir, -0.35f);
         p.rotVel = 320f * dir;
     }
@@ -151,6 +152,7 @@ public class FishScaleStep : ChefStep
 
                     present[idx] = false;
                     remaining--;
+                    Sfx.PlayLimited(Sfx.Descale, 0.04f);
                     if (falls.Count < 400)
                         falls.Add(new Fall
                         {
@@ -219,6 +221,7 @@ public class FishFilletStep : ChefStep
     readonly bool[] cut = new bool[Pts];
     float devSum;
     int devSamples;
+    SfxLoop dice;
 
     static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
 
@@ -252,7 +255,11 @@ public class FishFilletStep : ChefStep
 
     public override void Tick(ChefInput i)
     {
-        if (!i.down) return;
+        if (!i.down)
+        {
+            Sfx.StopLoop(ref dice);
+            return;
+        }
 
         float tol = Tol;
         float best = float.MaxValue;
@@ -263,6 +270,15 @@ public class FishFilletStep : ChefStep
             if (d < tol * 1.3f) cut[k] = true;
         }
 
+        if (best < tol * 1.5f)
+        {
+            if (dice == null) dice = Sfx.Loop(Sfx.KnifeDice);
+        }
+        else
+        {
+            Sfx.StopLoop(ref dice);
+        }
+
         if (best < tol * 6f)
         {
             devSum += Mathf.Min(best, tol * 4f);
@@ -271,6 +287,8 @@ public class FishFilletStep : ChefStep
 
         if (Coverage() >= 0.97f) done = true;
     }
+
+    public override void End() => Sfx.StopLoop(ref dice);
 
     public override void Draw(ChefInput i)
     {
@@ -353,7 +371,9 @@ public class FishCutStep : ChefStep
         if (drawing && !i.down)
         {
             drawing = false;
+            int before = hCuts.Count + vCuts.Count;
             Commit(start, i.m);
+            if (hCuts.Count + vCuts.Count > before) Sfx.Play(Sfx.KnifeChop);
         }
     }
 

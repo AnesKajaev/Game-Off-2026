@@ -68,6 +68,7 @@ public class MeatballMixStep : ChefStep
                 if (!added[idx] && d < R)
                 {
                     hold[idx] += i.dt;
+                    if (idx != 1) Sfx.PlayLimited(Sfx.SaltShaker, 0.15f);
                     if (hold[idx] >= 0.7f) Add(idx);
                 }
             }
@@ -219,6 +220,7 @@ public class MeatballSculptStep : ChefStep
         bool inside = dist < contour;
         float falloff = inside ? 1f : Mathf.Clamp01(1f - (dist - contour) / 0.15f);
         if (falloff <= 0f) return;
+        Sfx.PlayLimited(Sfx.MeatShape, 0.25f);
 
         for (int k = 0; k < Pts; k++)
         {

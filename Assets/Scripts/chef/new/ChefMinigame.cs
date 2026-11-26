@@ -117,6 +117,7 @@ public class ChefMinigame : MonoBehaviour
 
     void Close()
     {
+        if (phase == Phase.Steps) steps[stepIndex].End();
         phase = Phase.Closed;
         Active = false;
         PlayerMovement.inputLocked = false;
@@ -146,6 +147,7 @@ public class ChefMinigame : MonoBehaviour
 
         if (Keyboard.current[Key.Escape].wasPressedThisFrame)
         {
+            Sfx.Play(Sfx.UiBack);
             OrderBoard.Instance.Release(note);
             Close();
             return;
@@ -155,12 +157,20 @@ public class ChefMinigame : MonoBehaviour
 
         if (phase == Phase.Results)
         {
-            if (i.pressed && ActionRect.Contains(i.m)) Finish();
+            if (i.pressed && ActionRect.Contains(i.m))
+            {
+                Sfx.Play(Sfx.UiSelect);
+                Finish();
+            }
             return;
         }
 
         ChefStep step = steps[stepIndex];
-        if (i.pressed && step.actionLabel != null && step.ActionEnabled && ActionRect.Contains(i.m)) step.OnAction();
+        if (i.pressed && step.actionLabel != null && step.ActionEnabled && ActionRect.Contains(i.m))
+        {
+            Sfx.Play(Sfx.UiSelect);
+            step.OnAction();
+        }
         else step.Tick(i);
 
         if (step.done) NextStep();
@@ -168,6 +178,7 @@ public class ChefMinigame : MonoBehaviour
 
     void NextStep()
     {
+        steps[stepIndex].End();
         stepIndex++;
         if (stepIndex < steps.Count)
         {

@@ -25,6 +25,7 @@ public class CookStep : ChefStep
     Vector2 pressPos;
     float sideTime;
     int platedCount;
+    SfxLoop fry;
 
     public CookStep(Kind k)
     {
@@ -169,6 +170,18 @@ public class CookStep : ChefStep
         }
 
         if (!Spin && platedCount == pieces.Count) done = true;
+
+        bool cooking = false;
+        foreach (var p in pieces) if (p.onSurface && !p.plated) cooking = true;
+        if (cooking && fry == null)
+        {
+            Sfx.Play(Sfx.StoveOn);
+            fry = Sfx.Loop(Sfx.Frying);
+        }
+        else if (!cooking && fry != null)
+        {
+            Sfx.StopLoop(ref fry);
+        }
     }
 
     void Drop(Piece p)
@@ -213,6 +226,8 @@ public class CookStep : ChefStep
         int k = platedCount++;
         p.pos = Nrm(new Vector2(pr.x + pr.width * (0.2f + 0.2f * (k % 4)), pr.y + pr.height * (0.3f + 0.22f * (k / 4))));
     }
+
+    public override void End() => Sfx.StopLoop(ref fry);
 
     public override void OnAction()
     {

@@ -50,6 +50,7 @@ public class ChickenSauceStep : ChefStep
         {
             int k = System.Array.IndexOf(items, h);
             amount[k] = Mathf.Min(1f, amount[k] + 0.3f * i.dt);
+            if (k == 0 || k == 3) Sfx.PlayLimited(Sfx.SaltShaker, 0.15f);
         }
     }
 
