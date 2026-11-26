@@ -1,0 +1,19 @@
+ --- Explanation ---
+
+For the tracks to flow seamlessly, reverb needed to be added to the start of some tracks so there wouldn't be a perceived "skip" / an obvious restart of the loop. However, there still needs to be a track that starts dry for the beginning spawns. And since I assume the spawn will be dependent on which character begins the shift, there needed to be 4 spawn tracks. So, this creates 8 values (4 for spawns, 4 for loops, creating values 0-7) to trigger the desired track.
+
+The Fmod file is set up to where once a spawn track starts, it's impossible to get to another spawn track until the file is reset. 
+
+Briefly, tracks for each area are right next to each other value wise, with the first track being the "spawn" track, and the next value being the loop track.
+
+--- Values ---
+
+0 - Dining Room Spawn
+1 - Dining Room Loop
+2 - Kitchen Spawn
+3 - Kitchen Loop
+4 - Bar Spawn
+5 - Bar Loop
+6 - Cargo/Storage Spawn
+7 - Cargo/Storage Loop
+ 
